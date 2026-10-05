@@ -30,10 +30,10 @@ function placeSlots(
   return slots.map((id) => (id ? byId.get(id) ?? null : null));
 }
 
-const PIGEON_LETTERS = "ABCDEFGHIJKLMNOP".split("");
+const PIGEON_LETTERS = "ABCDEFGH".split("");
 
 /**
- * Pigeon-hole cards: 16 picking slots, badge left + list ID right.
+ * Dispatch-station cards: 8 picking slots, badge left + list ID right.
  * Empty holes are grey/white, holes with ready-to-pick data turn green, and
  * holes whose letter is also on the pick list above turn yellow.
  */
