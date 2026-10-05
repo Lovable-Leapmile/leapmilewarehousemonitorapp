@@ -190,7 +190,7 @@ export default function ListTrackerPage() {
             <div className="border-t border-foreground/20" />
 
             {putlist && (
-              <section aria-label="Putlist order" className="h-[clamp(9rem,20vh,13rem)] shrink-0">
+              <section aria-label="Putlist order" className="h-[clamp(13rem,24vh,16rem)] shrink-0">
                 <SketchCard
                   list={putlist}
                   letter={putlist.listLetter}
