@@ -20,10 +20,12 @@ function stationLayout(width: number, height: number, count: number) {
 export function SketchStations({
   stops,
   tone = "success",
+  singleRow = false,
   className,
 }: {
   stops?: TrackerList["stops"];
   tone?: "success" | "warning";
+  singleRow?: boolean;
   className?: string;
 }) {
   // Keep the station and bin from the same tray record; never invent station numbers.
@@ -39,7 +41,11 @@ export function SketchStations({
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const { columns, size } = stationLayout(bounds.width, bounds.height, trays.length);
+  const layout = stationLayout(bounds.width, bounds.height, trays.length);
+  const columns = singleRow ? Math.max(1, trays.length) : layout.columns;
+  const size = singleRow
+    ? Math.max(14, Math.min(88, bounds.width / columns - 8, bounds.height - 20))
+    : layout.size;
   const fontSize = Math.max(13, Math.min(size * 0.45, 40));
   const binFontSize = Math.max(10, Math.min(size * 0.21, 15));
   const circle =
