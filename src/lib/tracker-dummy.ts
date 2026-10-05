@@ -52,6 +52,7 @@ export const DUMMY_LISTS: TrackerList[] = SEEDS.map((s, i) => ({
   kind: s.kind,
 
   status: s.status,
+  createdAt: null,
   deadline: null,
   station: s.station,
   reached: s.reached,
