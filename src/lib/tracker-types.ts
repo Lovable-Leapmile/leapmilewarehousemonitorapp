@@ -21,6 +21,8 @@ export type TrackerList = {
   /** Live order type from metadata.type, when provided by the API. */
   orderType?: OrderType | null;
   status: "ready" | "inprogress";
+  /** Earliest API creation time among trays in this list, used for FIFO queues. */
+  createdAt: string | null;
 
   /** absolute deadline epoch-ms — only for status "ready" */
   deadline: number | null;
