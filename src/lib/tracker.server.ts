@@ -198,6 +198,12 @@ export function buildLists(
     const isReady = group.pending.length === 0 && reached > 0;
 
     const budgetMin = all.find((o) => o.auto_complete_time != null)?.auto_complete_time ?? 5;
+    const createdAt = all.reduce<string | null>((earliest, order) => {
+      const value = order.created_at;
+      if (!value || !Number.isFinite(Date.parse(value))) return earliest;
+      if (!earliest || Date.parse(value) < Date.parse(earliest)) return value;
+      return earliest;
+    }, null);
     let baseMs = 0;
     for (const o of all) {
       const t = Date.parse(o.updated_at ?? "");
@@ -215,6 +221,7 @@ export function buildLists(
       kind: anchorId % 2 === 0 ? "pick" : "put",
       orderType: all.map(orderType).find((type) => type !== null) ?? null,
       status: isReady ? "ready" : "inprogress",
+      createdAt,
       deadline,
       station,
       reached,

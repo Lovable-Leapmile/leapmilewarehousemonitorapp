@@ -123,7 +123,11 @@ export default function ListTrackerPage() {
     .sort((a, b) => dotCount(b) - dotCount(a));
   const putlists = ready
     .filter((l) => l.orderType === "putaway")
-    .sort((a, b) => dotCount(b) - dotCount(a));
+    .sort((a, b) => {
+      const aCreated = a.createdAt ? Date.parse(a.createdAt) : Number.MAX_SAFE_INTEGER;
+      const bCreated = b.createdAt ? Date.parse(b.createdAt) : Number.MAX_SAFE_INTEGER;
+      return aCreated - bCreated || a.listId.localeCompare(b.listId);
+    });
 
   // Fixed slots in the ready view: a card keeps its slot for its lifetime;
   // when it disappears the slot frees up for the next ready list.
