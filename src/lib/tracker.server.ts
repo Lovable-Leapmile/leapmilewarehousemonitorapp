@@ -30,8 +30,58 @@ export type OrderRecord = {
 
 const lastSuccessfulOrders = new Map<string, OrderRecord[]>();
 
+const ORDER_QUERIES = {
+  inProgress: "tray_status=inprogress&status=active&order_by_field=created_at&order_by_type=ASC",
+  ready: "tray_status=tray_ready_to_use&status=active&order_by_field=updated_at&order_by_type=ASC",
+  pickReady: "tray_status=completed&status=inactive&list_status=ready_to_pick&order_by_field=updated_at&order_by_type=ASC",
+} as const;
+
+type FeedName = keyof typeof ORDER_QUERIES;
+type FeedPayload = { records?: OrderRecord[]; unavailable?: boolean } | null;
+
+function queryParams(query: string) {
+  return Object.fromEntries(new URLSearchParams(query));
+}
+
+function cachedFeed(name: FeedName) {
+  return lastSuccessfulOrders.get(ORDER_QUERIES[name]) ?? [];
+}
+
+function resolveFeed(name: FeedName, payload: FeedPayload): OrderRecord[] {
+  const query = ORDER_QUERIES[name];
+  if (payload?.unavailable) return cachedFeed(name);
+  const records = payload?.records ?? [];
+  lastSuccessfulOrders.set(query, records);
+  return records;
+}
+
+/** Fetch all dashboard feeds in one hosted invocation to avoid runtime churn. */
+export async function fetchOrderFeeds() {
+  const queries = Object.fromEntries(
+    Object.entries(ORDER_QUERIES).map(([name, query]) => [name, queryParams(query)]),
+  );
+  const { data, error } = await supabase.functions.invoke("leapmile-orders", {
+    body: { queries },
+  });
+
+  if (error) {
+    return {
+      inProgress: cachedFeed("inProgress"),
+      ready: cachedFeed("ready"),
+      pickReady: cachedFeed("pickReady"),
+    };
+  }
+
+  const feeds = (data as { feeds?: Partial<Record<FeedName, FeedPayload>> } | null)?.feeds;
+  return {
+    inProgress: resolveFeed("inProgress", feeds?.inProgress ?? null),
+    ready: resolveFeed("ready", feeds?.ready ?? null),
+    pickReady: resolveFeed("pickReady", feeds?.pickReady ?? null),
+  };
+}
+
 async function getOrders(query: string): Promise<OrderRecord[]> {
-  const params = Object.fromEntries(new URLSearchParams(query));
+  const params = queryParams(query);
   const { data, error } = await supabase.functions.invoke("leapmile-orders", {
     body: { query: params },
   });
@@ -47,16 +97,12 @@ async function getOrders(query: string): Promise<OrderRecord[]> {
 
 /** Trays still travelling — their lists are IN PROGRESS. */
 export function fetchInProgressOrders() {
-  return getOrders(
-    "tray_status=inprogress&status=active&order_by_field=created_at&order_by_type=ASC"
-  );
+  return getOrders(ORDER_QUERIES.inProgress);
 }
 
 /** Trays that arrived at a station (e.g. "S-01") — READY candidates. */
 export function fetchReadyOrders() {
-  return getOrders(
-    "tray_status=tray_ready_to_use&status=active&order_by_field=updated_at&order_by_type=ASC"
-  );
+  return getOrders(ORDER_QUERIES.ready);
 }
 
 /** Map a valid physical station to the legacy side grid; display uses the original name. */
@@ -192,9 +238,7 @@ export function buildLists(
 
 /** Completed trays whose list is ready to be picked from the pigeon holes. */
 export function fetchPickReadyOrders() {
-  return getOrders(
-    "tray_status=completed&status=inactive&list_status=ready_to_pick&order_by_field=updated_at&order_by_type=ASC"
-  );
+  return getOrders(ORDER_QUERIES.pickReady);
 }
 
 /** One entry per badge (pigeon hole) with the distinct list ids inside it. */

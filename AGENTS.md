@@ -1,3 +1,4 @@
 Order type indicators on the ready-list cards must come from API `metadata.type`, never the legacy ID-parity `kind`, because the latter is not a real order classification.
 External Leapmile order requests must pass through the `leapmile-orders` hosted function so periodic polling works in previews and published builds without exposing credentials.
 Transient Leapmile failures are retried only in the hosted function, returned as a successful degraded poll, and client polling preserves each feed's last successful data.
+Dashboard polling batches all Leapmile feeds into one hosted-function invocation per interval to minimize runtime instance churn.
