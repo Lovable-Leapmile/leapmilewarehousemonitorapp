@@ -174,7 +174,13 @@ export function buildLists(
       reached,
       total,
       sides,
-      stops: stops.sort((a, b) => (a.station ?? Infinity) - (b.station ?? Infinity)),
+      stops: stops.sort(
+        (a, b) =>
+          a.stationName.localeCompare(b.stationName, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          }) || a.orderId - b.orderId
+      ),
     });
   }
 
