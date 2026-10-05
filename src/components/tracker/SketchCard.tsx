@@ -64,12 +64,14 @@ export function SketchCard({
           </span>
         )}
 
-        {/* letter badge sits below the list ID */}
-        <LetterBadge
-          letter={letter ?? list.listLetter}
-          className="mt-3 size-[3.75rem]"
-          textClassName="text-4xl"
-        />
+        {/* Putaway cards do not use dispatch-station letter badges. */}
+        {list.orderType !== "putaway" && (
+          <LetterBadge
+            letter={letter ?? list.listLetter}
+            className="mt-3 size-[3.75rem]"
+            textClassName="text-4xl"
+          />
+        )}
       </div>
 
       <SketchStations
