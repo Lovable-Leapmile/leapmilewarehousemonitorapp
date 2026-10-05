@@ -6,7 +6,7 @@ import { LetterBadge } from "@/components/tracker/LetterBadge";
 import { cn } from "@/lib/utils";
 import type { PigeonHole, TrackerList } from "@/lib/tracker-types";
 
-const READY_SLOTS = 5;
+const PICKLIST_SLOTS = 5;
 
 function placeSlots(
   slots: (string | null)[],
@@ -15,7 +15,7 @@ function placeSlots(
 ) {
   const candIds = new Set(candidates.map((l) => l.id));
   // Free slots whose list is gone or has switched rows.
-  for (let i = 0; i < READY_SLOTS; i++) {
+  for (let i = 0; i < slots.length; i++) {
     const id = slots[i];
     if (id && !candIds.has(id)) slots[i] = null;
   }
@@ -117,18 +117,24 @@ export default function ListTrackerPage() {
   // stations is placed first.
   const dotCount = (l: TrackerList) =>
     l.sides.A.filter(Boolean).length + l.sides.B.filter(Boolean).length;
-  const ready = incoming
-    .filter((l) => l.status === "ready")
+  const ready = incoming.filter((l) => l.status === "ready");
+  const picklists = ready
+    .filter((l) => l.orderType === "pickup")
+    .sort((a, b) => dotCount(b) - dotCount(a));
+  const putlists = ready
+    .filter((l) => l.orderType === "putaway")
     .sort((a, b) => dotCount(b) - dotCount(a));
 
   // Fixed slots in the ready view: a card keeps its slot for its lifetime;
   // when it disappears the slot frees up for the next ready list.
-  const slotsRef = useRef<(string | null)[]>(Array(READY_SLOTS).fill(null));
-  const readySlots = placeSlots(slotsRef.current, ready, byId);
+  const picklistSlotsRef = useRef<(string | null)[]>(Array(PICKLIST_SLOTS).fill(null));
+  const picklistSlots = placeSlots(picklistSlotsRef.current, picklists, byId);
+  const putlistSlotRef = useRef<(string | null)[]>([null]);
+  const putlist = placeSlots(putlistSlotRef.current, putlists, byId)[0] ?? null;
 
   // Letters currently on the pick list above — their pigeon holes go yellow.
   const pickLetters = new Set(
-    readySlots
+    picklistSlots
       .map((l, i) => (l ? l.listLetter || READY_LETTERS[i] || "" : ""))
       .filter(Boolean)
       .map((s) => s.toUpperCase())
@@ -160,7 +166,7 @@ export default function ListTrackerPage() {
         ) : (
           <>
             <section className="grid min-h-0 flex-1 grid-cols-2 grid-rows-3 gap-2 sm:gap-3">
-              {readySlots.map((list, i) =>
+              {picklistSlots.map((list, i) =>
                 list ? (
                   <SketchCard
                     key={list.id}
@@ -182,6 +188,18 @@ export default function ListTrackerPage() {
             </section>
 
             <div className="border-t border-foreground/20" />
+
+            {putlist && (
+              <section aria-label="Putlist order" className="h-[clamp(9rem,20vh,13rem)] shrink-0">
+                <SketchCard
+                  list={putlist}
+                  letter={putlist.listLetter}
+                  className="h-full"
+                />
+              </section>
+            )}
+
+            {putlist && <div className="border-t border-foreground/20" />}
 
             <PigeonRow holes={pigeonHoles} pickLetters={pickLetters} />
           </>
