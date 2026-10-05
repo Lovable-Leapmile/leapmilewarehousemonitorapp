@@ -55,8 +55,8 @@ export function SketchStations({
   return (
     <ul
       ref={containerRef}
-      className={cn("grid content-center items-center", className)}
-      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      className={cn("grid content-center justify-start items-center gap-x-1", className)}
+      style={{ gridTemplateColumns: `repeat(${columns}, ${size + 8}px)` }}
     >
       {trays.map((tray) => (
         <li key={tray.orderId} className="flex min-w-0 flex-col items-center text-center">
