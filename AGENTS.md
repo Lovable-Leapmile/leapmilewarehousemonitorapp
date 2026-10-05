@@ -3,3 +3,4 @@ External Leapmile order requests must pass through the `leapmile-orders` hosted 
 Transient Leapmile failures are retried only in the hosted function, returned as a successful degraded poll, and client polling preserves each feed's last successful data.
 Dashboard polling batches all Leapmile feeds into one hosted-function invocation per interval to minimize runtime instance churn.
 Putaway lists use a single FIFO slot ordered by earliest tray creation and advance only when the active list disappears after all trays complete.
+Ready-card station markers use the measured card space to fit every tray at normal display zoom without clipping or scrolling.
