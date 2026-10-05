@@ -38,46 +38,47 @@ export function SketchCard({
         className={cn("absolute inset-y-0 left-0 w-1", ready ? "bg-success" : "bg-warning")}
       />
 
-      <div className="relative ml-1 flex w-[9.5rem] shrink-0 flex-col items-center justify-center gap-1 border-r border-foreground/20 pl-0 pr-2 text-center leading-none sm:w-[12.5rem] sm:pr-3">
-        <span className="font-mono text-2xl tracking-[0.12em] text-foreground/85 sm:text-3xl">
+      <div className="relative ml-1 flex w-[8.5rem] shrink-0 flex-col items-center justify-center gap-1 border-r border-foreground/20 pr-2 text-center leading-none sm:w-[10rem] sm:pr-3">
+        <span className="font-mono text-[clamp(1rem,2.1vh,1.75rem)] tracking-[0.12em] text-foreground/85">
           {head}
         </span>
         <span
           className={cn(
-            "font-mono text-8xl font-black tracking-tight sm:text-[6.5rem]",
+            "font-mono text-[clamp(2.75rem,6.4vh,5.5rem)] font-black leading-none tracking-tight",
             ready ? "text-success" : "text-warning"
           )}
         >
           {tail}
         </span>
 
-        {list.orderType && (
-          <span
-            className={cn(
-              "mt-1 rounded-sm border px-2.5 py-1.5 font-sans text-base font-extrabold leading-none sm:text-lg",
-              list.orderType === "putaway"
-                ? "border-put bg-put text-put-foreground"
-                : "border-pick bg-pick text-pick-foreground"
-            )}
-          >
-            {list.orderType.toUpperCase()}
-          </span>
-        )}
-
-        {/* Putaway cards do not use dispatch-station letter badges. */}
-        {list.orderType !== "putaway" && (
-          <LetterBadge
-            letter={letter ?? list.listLetter}
-            className="mt-3 size-[3.75rem]"
-            textClassName="text-4xl"
-          />
-        )}
+        <div className="flex min-h-8 items-center justify-center gap-2">
+          {list.orderType && (
+            <span
+              className={cn(
+                "rounded-sm border px-1.5 py-1 font-sans text-[clamp(0.75rem,1.4vh,1rem)] font-extrabold leading-none",
+                list.orderType === "putaway"
+                  ? "border-put bg-put text-put-foreground"
+                  : "border-pick bg-pick text-pick-foreground"
+              )}
+            >
+              {list.orderType.toUpperCase()}
+            </span>
+          )}
+          {/* Putaway cards do not use dispatch-station letter badges. */}
+          {list.orderType !== "putaway" && (
+            <LetterBadge
+              letter={letter ?? list.listLetter}
+              className="size-8"
+              textClassName="text-xl"
+            />
+          )}
+        </div>
       </div>
 
       <SketchStations
         stops={list.stops ?? []}
         tone={ready ? "success" : "warning"}
-        className="min-w-0 flex-1 pl-3 pr-1 sm:pl-4 sm:pr-1"
+        className="min-h-0 min-w-0 flex-1 pl-2 pr-1 sm:pl-3 sm:pr-1"
       />
     </article>
   );
