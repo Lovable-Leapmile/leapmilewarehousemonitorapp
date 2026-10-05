@@ -1,10 +1,23 @@
-# Remove duplicate pigeon-hole data
+# Separate Putlist Order Row
 
-## Changes
-- Normalize badge letters and List IDs before displaying pigeon-hole data.
-- Show each List ID only once across the full pigeon-hole row, even if repeated API records return it.
-- Keep the hosted API relay because it protects the Leapmile credential and enables polling; no database records are used for this display.
+## What will change
+- Split ready orders using the live API `metadata.type`: `putaway` becomes Putlist and `pickup` remains Picklist.
+- Keep the existing five-card Picklist area and its slot-preserving behavior, but exclude Putlist orders from it.
+- Add one full-width Putlist order card immediately above the A–P dispatch-station row.
+- Show only the first available Putlist order at a time, using the same list ID, order-type badge, letter badge, station circles, bin suffixes, and live polling behavior as Picklist cards.
+- Keep dispatch-station yellow highlighting tied only to the visible Picklist orders.
 
-## Verification
-- Check repeated API records collapse to one visible List ID.
-- Confirm the board still refreshes every two seconds and remains visible.
+## Layout
+```text
+[ Picklist cards — existing layout ]
+-----------------------------------
+[ Putlist order — one full-width row ]
+-----------------------------------
+[ Dispatch stations A–P — existing ]
+```
+
+## Technical details
+- Update only the dashboard presentation logic; API calls and two-second polling remain unchanged.
+- Use `orderType === "putaway"` and `orderType === "pickup"` from API metadata, never the legacy list kind.
+- Preserve the zero-scroll full-screen board by giving the Putlist row a bounded height and allowing the Picklist area to use the remaining space.
+- Verify the visible layout and ensure the build remains error-free.
