@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       "/nanostore": {
-        target: "https://multirobot1.leapmile.com",
+        target: "https://testrobot1.leapmile.com",
         changeOrigin: true,
         secure: true,
       },
