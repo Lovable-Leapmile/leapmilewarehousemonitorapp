@@ -39,10 +39,6 @@ const ORDER_QUERIES = {
 type FeedName = keyof typeof ORDER_QUERIES;
 type FeedPayload = { records?: OrderRecord[]; unavailable?: boolean } | null;
 
-function queryParams(query: string) {
-  return Object.fromEntries(new URLSearchParams(query));
-}
-
 function cachedFeed(name: FeedName) {
   return lastSuccessfulOrders.get(ORDER_QUERIES[name]) ?? [];
 }
@@ -55,41 +51,62 @@ function resolveFeed(name: FeedName, payload: FeedPayload): OrderRecord[] {
   return records;
 }
 
-/** Fetch all dashboard feeds in one hosted invocation to avoid runtime churn. */
-export async function fetchOrderFeeds() {
-  const queries = Object.fromEntries(
-    Object.entries(ORDER_QUERIES).map(([name, query]) => [name, queryParams(query)]),
-  );
-  const { data, error } = await supabase.functions.invoke("leapmile-orders", {
-    body: { queries },
-  });
+const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
 
-  if (error) {
-    return {
-      inProgress: cachedFeed("inProgress"),
-      ready: cachedFeed("ready"),
-      pickReady: cachedFeed("pickReady"),
-    };
+/** Direct call to the Leapmile API with a short retry for transient failures. */
+async function fetchUpstream(query: string): Promise<FeedPayload> {
+  const url = `${LEAPMILE_BASE_URL}/nanostore/orders?${query}`;
+  const delays = [150, 350];
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${LEAPMILE_API_TOKEN}`,
+        },
+        signal: AbortSignal.timeout(4000),
+      });
+
+      // Leapmile uses 404 to mean that this valid filter currently has no rows.
+      if (response.status === 404) return { records: [] };
+
+      if (!response.ok) {
+        if (RETRYABLE_STATUS.has(response.status) && attempt < 2) {
+          await new Promise((r) => setTimeout(r, delays[attempt]));
+          continue;
+        }
+        return { unavailable: true };
+      }
+
+      const contentType = response.headers.get("content-type") ?? "application/json";
+      if (!contentType.includes("application/json")) return { unavailable: true };
+      return (await response.json()) as FeedPayload;
+    } catch {
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, delays[attempt]));
+        continue;
+      }
+      return { unavailable: true };
+    }
   }
+  return { unavailable: true };
+}
 
-  const feeds = (data as { feeds?: Partial<Record<FeedName, FeedPayload>> } | null)?.feeds;
-  return {
-    inProgress: resolveFeed("inProgress", feeds?.inProgress ?? null),
-    ready: resolveFeed("ready", feeds?.ready ?? null),
-    pickReady: resolveFeed("pickReady", feeds?.pickReady ?? null),
-  };
+/** Fetch all dashboard feeds in parallel, keeping each feed's last good data. */
+export async function fetchOrderFeeds() {
+  const names = Object.keys(ORDER_QUERIES) as FeedName[];
+  const results = await Promise.all(
+    names.map(async (name) => [name, await fetchUpstream(ORDER_QUERIES[name])] as const),
+  );
+  return Object.fromEntries(
+    results.map(([name, payload]) => [name, resolveFeed(name, payload)]),
+  ) as Record<FeedName, OrderRecord[]>;
 }
 
 async function getOrders(query: string): Promise<OrderRecord[]> {
-  const params = queryParams(query);
-  const { data, error } = await supabase.functions.invoke("leapmile-orders", {
-    body: { query: params },
-  });
-  if (error) return lastSuccessfulOrders.get(query) ?? [];
-
-  const payload = data as { records?: OrderRecord[]; unavailable?: boolean } | null;
+  const payload = await fetchUpstream(query);
   if (payload?.unavailable) return lastSuccessfulOrders.get(query) ?? [];
-
   const records = payload?.records ?? [];
   lastSuccessfulOrders.set(query, records);
   return records;
