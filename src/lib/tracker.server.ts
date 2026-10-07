@@ -1,5 +1,5 @@
 import { STATIONS_PER_SIDE, type OrderType, type PigeonHole, type Side, type TrackerList } from "./tracker-types";
-import { supabase } from "@/integrations/supabase/client";
+import { LEAPMILE_API_TOKEN, LEAPMILE_BASE_URL } from "./leapmile.config";
 
 export type { PigeonHole, Side, TrackerList };
 
