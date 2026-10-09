@@ -5,6 +5,7 @@ import { SketchCard } from "@/components/tracker/SketchCard";
 import { LetterBadge } from "@/components/tracker/LetterBadge";
 import { cn } from "@/lib/utils";
 import type { PigeonHole, TrackerList } from "@/lib/tracker-types";
+import { createPickupQueue, updatePickupQueue } from "@/lib/pickup-queue";
 
 const PICKLIST_SLOTS = 5;
 
@@ -113,14 +114,7 @@ export default function ListTrackerPage() {
   const pigeonHoles = data?.pigeonHoles ?? [];
   const byId = new Map(incoming.map((l) => [l.id, l]));
 
-  // The first slot is the full-width card, so the list with the most reached
-  // stations is placed first.
-  const dotCount = (l: TrackerList) =>
-    l.sides.A.filter(Boolean).length + l.sides.B.filter(Boolean).length;
   const ready = incoming.filter((l) => l.status === "ready");
-  const picklists = ready
-    .filter((l) => l.orderType === "pickup")
-    .sort((a, b) => dotCount(b) - dotCount(a));
   const putlists = ready
     .filter((l) => l.orderType === "putaway")
     .sort((a, b) => {
@@ -129,10 +123,9 @@ export default function ListTrackerPage() {
       return aCreated - bCreated || a.listId.localeCompare(b.listId);
     });
 
-  // Fixed slots in the ready view: a card keeps its slot for its lifetime;
-  // when it disappears the slot frees up for the next ready list.
-  const picklistSlotsRef = useRef<(string | null)[]>(Array(PICKLIST_SLOTS).fill(null));
-  const picklistSlots = placeSlots(picklistSlotsRef.current, picklists, byId);
+  // Keep a last-known ready card until its list reaches a pigeon hole.
+  const pickupQueueRef = useRef(createPickupQueue(PICKLIST_SLOTS));
+  const picklistSlots = updatePickupQueue(pickupQueueRef.current, incoming, pigeonHoles);
   const putlistSlotRef = useRef<(string | null)[]>([null]);
   const putlist = placeSlots(putlistSlotRef.current, putlists, byId)[0] ?? null;
 
@@ -161,7 +154,7 @@ export default function ListTrackerPage() {
 
       {/* outer bordered container, as in the sketch */}
       <div className="relative mx-auto flex min-h-0 w-full flex-1 flex-col gap-2 rounded-2xl border-2 border-border/60 bg-card/40 p-2 backdrop-blur sm:gap-3 sm:p-3">
-        {incoming.length === 0 && pigeonHoles.length === 0 ? (
+        {incoming.length === 0 && pigeonHoles.length === 0 && !picklistSlots.some(Boolean) ? (
           <div className="flex min-h-0 flex-1 items-center justify-center">
             <p className="font-mono text-3xl font-bold tracking-[0.2em] text-foreground/60 sm:text-5xl">
               NO LIST AVAILABLE
