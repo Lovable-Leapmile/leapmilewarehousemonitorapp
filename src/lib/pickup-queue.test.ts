@@ -1,3 +1,4 @@
+/// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
 import { createPickupQueue, updatePickupQueue } from "./pickup-queue";
 import type { TrackerList } from "./tracker-types";
