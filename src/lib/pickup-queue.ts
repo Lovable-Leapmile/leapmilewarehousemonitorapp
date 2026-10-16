@@ -1,5 +1,7 @@
 import type { PigeonHole, TrackerList } from "./tracker-types";
 
+export const PICKUP_VISIBLE_SLOTS = 6;
+
 export type PickupQueue = {
   slots: (TrackerList | null)[];
   waiting: Map<string, TrackerList>;

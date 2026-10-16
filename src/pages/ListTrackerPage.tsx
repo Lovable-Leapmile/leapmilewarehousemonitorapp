@@ -5,9 +5,7 @@ import { SketchCard } from "@/components/tracker/SketchCard";
 import { LetterBadge } from "@/components/tracker/LetterBadge";
 import { cn } from "@/lib/utils";
 import type { PigeonHole, TrackerList } from "@/lib/tracker-types";
-import { createPickupQueue, updatePickupQueue } from "@/lib/pickup-queue";
-
-const PICKLIST_SLOTS = 5;
+import { createPickupQueue, updatePickupQueue, PICKUP_VISIBLE_SLOTS } from "@/lib/pickup-queue";
 
 function placeSlots(
   slots: (string | null)[],
@@ -124,16 +122,15 @@ export default function ListTrackerPage() {
     });
 
   // Keep a last-known card until its list reaches a pigeon hole.
-  const pickupQueueRef = useRef(createPickupQueue(PICKLIST_SLOTS));
+  const pickupQueueRef = useRef(createPickupQueue(PICKUP_VISIBLE_SLOTS));
   const queued = updatePickupQueue(pickupQueueRef.current, incoming, pigeonHoles);
-  // Show every Pickup list, oldest created at the top.
+  // Show only admitted Pickup lists, oldest created at the top; extras wait.
   const createdMs = (l: TrackerList) => {
     const v = Date.parse(l.createdAt ?? "");
     return Number.isFinite(v) ? v : Number.MAX_SAFE_INTEGER;
   };
   const picklistSlots = [
     ...queued.filter((l): l is TrackerList => l !== null),
-    ...pickupQueueRef.current.waiting.values(),
   ].sort(
     (a, b) => createdMs(a) - createdMs(b) || a.listId.localeCompare(b.listId, undefined, { numeric: true }),
   );
