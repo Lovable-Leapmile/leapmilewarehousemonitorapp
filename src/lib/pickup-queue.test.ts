@@ -14,6 +14,19 @@ function pickup(id: number): TrackerList {
 }
 
 describe("Pickup ready waiting order", () => {
+  test("created Pickup lists enter the five slots before their bins are ready", () => {
+    const queue = createPickupQueue(5);
+    const created = { ...pickup(1), status: "inprogress" as const, reached: 0 };
+    assert.equal(updatePickupQueue(queue, [created], [])[0]?.status, "inprogress");
+    assert.equal(updatePickupQueue(queue, [pickup(1)], [])[0]?.status, "ready");
+  });
+  test("new created Pickup lists wait until an older ready list reaches a pigeon hole", () => {
+    const queue = createPickupQueue(5);
+    updatePickupQueue(queue, [1, 2, 3, 4, 5].map(pickup), []);
+    const created = { ...pickup(6), status: "inprogress" as const, reached: 0 };
+    assert.deepEqual(updatePickupQueue(queue, [created], []).map(l => l?.listId), ["1", "2", "3", "4", "5"]);
+    assert.equal(updatePickupQueue(queue, [], [{ letter: "A", listIds: ["1"] }])[0]?.listId, "6");
+  });
   test("five older cards stay visible while a sixth new card waits", () => {
     const queue = createPickupQueue(5);
     updatePickupQueue(queue, [1, 2, 3, 4, 5].map(pickup), []);

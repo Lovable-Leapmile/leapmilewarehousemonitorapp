@@ -197,16 +197,24 @@ export function buildLists(
     const sides = emptySides();
     const stops: NonNullable<TrackerList["stops"]> = [];
     let station: string | null = null;
+    const type = all.map(orderType).find((value) => value !== null) ?? null;
+    const arrivedIds = new Set(group.arrived.map((order) => order.id));
+    const displayOrders = type === "pickup" ? all : group.arrived;
+    const shownIds = new Set<number>();
 
-    for (const order of group.arrived) {
+    for (const order of displayOrders) {
+      if (shownIds.has(order.id)) continue;
+      shownIds.add(order.id);
+      const arrived = arrivedIds.has(order.id);
       const spot = locate(order);
-      if (spot) sides[spot.side][slotIndex(spot.station)] = true;
-      station ??= order.station_friendly_name ?? null;
+      if (arrived && spot) sides[spot.side][slotIndex(spot.station)] = true;
+      if (arrived) station ??= order.station_friendly_name ?? null;
       stops.push({
         orderId: order.id,
         station: spot ? spot.station + (spot.side === "B" ? STATIONS_PER_SIDE : 0) : null,
         stationName: order.station_friendly_name?.trim() || "—",
         binId: order.bin_id?.trim() || "—",
+        arrived,
       });
     }
 
@@ -236,7 +244,7 @@ export function buildLists(
       listLetter: first.metadata?.badge ?? "A",
       operatorId: first.metadata?.operator_id ?? first.comment?.[1] ?? "",
       kind: anchorId % 2 === 0 ? "pick" : "put",
-      orderType: all.map(orderType).find((type) => type !== null) ?? null,
+      orderType: type,
       status: isReady ? "ready" : "inprogress",
       createdAt,
       deadline,

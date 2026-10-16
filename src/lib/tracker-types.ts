@@ -33,8 +33,8 @@ export type TrackerList = {
   total: number;
   /** length 24 per side, index 0 = station 24 … index 23 = station 01 */
   sides: Record<Side, boolean[]>;
-  /** One entry per arrived tray; preserve its own station label and bin ID. */
-  stops?: { orderId: number; station: number | null; stationName: string; binId: string }[];
+  /** Pickup includes coming trays too; preserve each tray's station, bin and arrival state. */
+  stops?: { orderId: number; station: number | null; stationName: string; binId: string; arrived?: boolean }[];
 };
 
 export type PigeonHole = { letter: string; listIds: string[] };
