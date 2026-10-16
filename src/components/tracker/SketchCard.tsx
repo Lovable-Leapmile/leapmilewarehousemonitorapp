@@ -28,14 +28,14 @@ export function SketchCard({
     <article
       className={cn(
         "relative flex min-h-0 min-w-0 items-stretch gap-1 overflow-hidden rounded-2xl border-2 bg-card/80 py-3 pl-2 pr-2 backdrop-blur sm:gap-2 sm:py-4 sm:pl-2 sm:pr-2",
-        ready ? "border-success/55" : "border-warning/70",
-        highlight && "bg-[color-mix(in_oklab,var(--card)_88%,var(--warning)_12%)]",
+        ready ? "border-warning/70" : "border-muted-foreground/40",
+        highlight && ready && "bg-[color-mix(in_oklab,var(--card)_88%,var(--warning)_12%)]",
         className
       )}
     >
       <span
         aria-hidden
-        className={cn("absolute inset-y-0 left-0 w-1", ready ? "bg-success" : "bg-warning")}
+        className={cn("absolute inset-y-0 left-0 w-1", ready ? "bg-warning" : "bg-muted-foreground/50")}
       />
 
       <div className="relative ml-1 flex w-[8.5rem] shrink-0 flex-col items-center justify-center gap-1 border-r border-foreground/20 pr-2 text-center leading-none sm:w-[10rem] sm:pr-3">
@@ -45,7 +45,7 @@ export function SketchCard({
         <span
           className={cn(
             "font-mono text-[clamp(2.75rem,6.4vh,5.5rem)] font-black leading-none tracking-tight",
-            ready ? "text-success" : "text-warning"
+            ready ? "text-warning" : "text-muted-foreground"
           )}
         >
           {tail}
