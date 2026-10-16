@@ -123,9 +123,20 @@ export default function ListTrackerPage() {
       return aCreated - bCreated || a.listId.localeCompare(b.listId);
     });
 
-  // Keep a last-known ready card until its list reaches a pigeon hole.
+  // Keep a last-known card until its list reaches a pigeon hole.
   const pickupQueueRef = useRef(createPickupQueue(PICKLIST_SLOTS));
-  const picklistSlots = updatePickupQueue(pickupQueueRef.current, incoming, pigeonHoles);
+  const queued = updatePickupQueue(pickupQueueRef.current, incoming, pigeonHoles);
+  // Show every Pickup list, oldest created at the top.
+  const createdMs = (l: TrackerList) => {
+    const v = Date.parse(l.createdAt ?? "");
+    return Number.isFinite(v) ? v : Number.MAX_SAFE_INTEGER;
+  };
+  const picklistSlots = [
+    ...queued.filter((l): l is TrackerList => l !== null),
+    ...pickupQueueRef.current.waiting.values(),
+  ].sort(
+    (a, b) => createdMs(a) - createdMs(b) || a.listId.localeCompare(b.listId, undefined, { numeric: true }),
+  );
   const putlistSlotRef = useRef<(string | null)[]>([null]);
   const putlist = placeSlots(putlistSlotRef.current, putlists, byId)[0] ?? null;
 
@@ -162,26 +173,19 @@ export default function ListTrackerPage() {
           </div>
         ) : (
           <>
-            <section className="grid min-h-0 flex-1 grid-cols-2 grid-rows-3 gap-2 sm:gap-3">
-              {picklistSlots.map((list, i) =>
-                list ? (
-                  <SketchCard
-                    key={list.id}
-                    list={list}
-                    letter={list.listLetter || (READY_LETTERS[i] ?? "A")}
-                    highlight={i === 0}
-                    className={cn("h-full", i === 0 && "col-span-2")}
-                  />
-                ) : (
-                  <div
-                    key={i}
-                    className={cn(
-                      "h-full min-h-0 rounded-2xl border-2 border-dashed border-border/40 bg-card/20",
-                      i === 0 && "col-span-2"
-                    )}
-                  />
-                )
-              )}
+            <section
+              className="grid min-h-0 flex-1 grid-cols-2 gap-2 sm:gap-3"
+              style={{ gridTemplateRows: `repeat(${Math.max(1, Math.ceil((picklistSlots.length + 1) / 2))}, minmax(0, 1fr))` }}
+            >
+              {picklistSlots.map((list, i) => (
+                <SketchCard
+                  key={list.id}
+                  list={list}
+                  letter={list.listLetter || (READY_LETTERS[i] ?? "A")}
+                  highlight={i === 0}
+                  className={cn("h-full min-h-0", i === 0 && "col-span-2")}
+                />
+              ))}
             </section>
 
             <div className="border-t border-foreground/20" />
