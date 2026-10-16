@@ -79,6 +79,7 @@ export function SketchCard({
         stops={list.stops ?? []}
         tone="warning"
         singleRow={list.orderType === "putaway"}
+        letter={list.orderType !== "putaway" ? letter ?? list.listLetter : undefined}
         className="min-h-0 min-w-0 flex-1 pl-2 pr-1 sm:pl-3 sm:pr-1"
       />
     </article>

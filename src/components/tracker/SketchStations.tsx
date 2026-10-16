@@ -21,11 +21,14 @@ export function SketchStations({
   stops,
   tone = "success",
   singleRow = false,
+  letter,
   className,
 }: {
   stops?: TrackerList["stops"];
   tone?: "success" | "warning";
   singleRow?: boolean;
+  /** Dispatch hole letter shown on arrived bins, mapping them to the pigeon row. */
+  letter?: string;
   className?: string;
 }) {
   // Keep the station and bin from the same tray record; never invent station numbers.
@@ -78,15 +81,27 @@ export function SketchStations({
             {tray.arrived === false ? "—" : tray.stationName}
           </span>
           {/* Shelf ID chip overlaps the circle it belongs to, so the pairing
-              is unambiguous even when rows sit close together. */}
-          <span
-            className={cn(
-              "-mt-2 rounded-md border-2 px-1 py-px font-mono font-bold leading-none tracking-tight tabular-nums shadow-sm",
-              tray.arrived === false ? "border-muted-foreground bg-muted-foreground text-background" : chip
+              is unambiguous even when rows sit close together. Arrived bins
+              also carry the dispatch hole letter they map to. */}
+          <span className="relative inline-flex">
+            <span
+              className={cn(
+                "-mt-2 rounded-md border-2 px-1 py-px font-mono font-bold leading-none tracking-tight tabular-nums shadow-sm",
+                tray.arrived === false ? "border-muted-foreground bg-muted-foreground text-background" : chip
+              )}
+              style={{ fontSize: binFontSize }}
+            >
+              {tray.binId === "—" ? "—" : tray.binId.slice(-5)}
+            </span>
+            {letter && tray.arrived !== false && (
+              <span
+                aria-hidden
+                className="absolute -right-1.5 -top-1.5 grid place-items-center rounded-[3px] border border-[#0d0d0d]/80 bg-[#FFB000] font-sans font-black uppercase leading-none text-[#0a0a0a] shadow"
+                style={{ fontSize: Math.max(9, binFontSize * 0.8), padding: "0px 2px" }}
+              >
+                {letter}
+              </span>
             )}
-            style={{ fontSize: binFontSize }}
-          >
-            {tray.binId === "—" ? "—" : tray.binId.slice(-5)}
           </span>
         </li>
       ))}
