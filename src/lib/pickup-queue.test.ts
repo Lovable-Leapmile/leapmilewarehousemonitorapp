@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { describe, test } from "node:test";
 import { strict as assert } from "node:assert";
-import { createPickupQueue, updatePickupQueue } from "./pickup-queue";
+import { createPickupQueue, updatePickupQueue, PICKUP_VISIBLE_SLOTS } from "./pickup-queue";
 import type { TrackerList } from "./tracker-types";
 
 function pickup(id: number): TrackerList {
@@ -14,6 +14,19 @@ function pickup(id: number): TrackerList {
 }
 
 describe("Pickup ready waiting order", () => {
+  test("six Pickup cards stay visible and the seventh waits for pigeon-hole dispatch", () => {
+    assert.equal(PICKUP_VISIBLE_SLOTS, 6);
+    const queue = createPickupQueue(PICKUP_VISIBLE_SLOTS);
+    const incoming = [7, 6, 5, 4, 3, 2, 1].map(pickup);
+    incoming[1] = { ...pickup(6), status: "inprogress" };
+    assert.deepEqual(updatePickupQueue(queue, incoming, []).map(l => l?.listId),
+      ["1", "2", "3", "4", "5", "6"]);
+    assert.equal(queue.slots[5]?.status, "inprogress");
+    assert.deepEqual([...queue.waiting.keys()], ["list-7"]);
+    assert.deepEqual(updatePickupQueue(queue, [], [{ letter: "A", listIds: ["1"] }]).map(l => l?.listId),
+      ["7", "2", "3", "4", "5", "6"]);
+    assert.equal(queue.waiting.size, 0);
+  });
   test("created Pickup lists enter the five slots before their bins are ready", () => {
     const queue = createPickupQueue(5);
     const created = { ...pickup(1), status: "inprogress" as const, reached: 0 };
