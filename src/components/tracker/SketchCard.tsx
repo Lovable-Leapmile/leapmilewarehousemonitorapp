@@ -19,8 +19,8 @@ export function SketchCard({
   /** Top pick list — rendered in the yellow accent. */
   highlight?: boolean;
 }) {
-  // All pick lists render in the yellow accent — green is no longer used here.
-  const ready = false;
+  // Ready lists render yellow; in-progress lists render grey.
+  const ready = list.status === "ready";
   const head = list.listId.slice(0, -3);
   const tail = list.listId.slice(-3);
 
@@ -77,7 +77,7 @@ export function SketchCard({
 
       <SketchStations
         stops={list.stops ?? []}
-        tone={ready ? "success" : "warning"}
+        tone="warning"
         singleRow={list.orderType === "putaway"}
         className="min-h-0 min-w-0 flex-1 pl-2 pr-1 sm:pl-3 sm:pr-1"
       />
