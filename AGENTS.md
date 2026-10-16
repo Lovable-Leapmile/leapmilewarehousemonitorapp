@@ -4,4 +4,4 @@ Transient Leapmile failures are retried in the client fetch layer, and polling p
 Putaway shows every active list; Pickup shows only admitted queue cards stacked oldest-created first, sized to fit without scrolling so waiting lists cannot bypass admission.
 Ready-card station markers use the measured card space to fit every tray at normal display zoom without clipping or scrolling.
 Pickup cards use a retained client queue with a shared visible-capacity constant, admitting both in-progress and ready lists FIFO and releasing slots only by pigeon-hole list IDs, because absence from an active feed does not confirm dispatch.
-Pickup stops include pending and arrived trays with an explicit arrival flag; Putaway stops remain arrived-only so each display preserves its own workflow.
+Pickup and Putaway stops both include pending and arrived trays with an explicit arrival flag, so each card can show upcoming trays in grey that turn yellow on arrival.
