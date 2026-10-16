@@ -69,8 +69,9 @@ export function SketchStations({
           <span
             className={cn(
               "grid shrink-0 place-items-center whitespace-nowrap rounded-full border-2 font-mono font-semibold tabular-nums",
-              circle,
+              tray.arrived === false ? "border-muted-foreground/70 bg-muted text-muted-foreground" : circle,
             )}
+            aria-label={`${tray.stationName}, bin ${tray.binId}, ${tray.arrived === false ? "coming" : "ready"}`}
             style={{ width: size, height: size, fontSize: tray.stationName.length > 2 ? fontSize * 0.65 : fontSize }}
           >
             {tray.stationName}
@@ -80,7 +81,7 @@ export function SketchStations({
           <span
             className={cn(
               "-mt-2 rounded-md border-2 px-1 py-px font-mono font-bold leading-none tracking-tight tabular-nums shadow-sm",
-              chip
+              tray.arrived === false ? "border-muted-foreground bg-muted-foreground text-background" : chip
             )}
             style={{ fontSize: binFontSize }}
           >
