@@ -114,8 +114,8 @@ export default function ListTrackerPage() {
   const pigeonHoles = data?.pigeonHoles ?? [];
   const byId = new Map(incoming.map((l) => [l.id, l]));
 
-  const ready = incoming.filter((l) => l.status === "ready");
-  const putlists = ready
+  // Every Putaway list, oldest created at the top.
+  const putlists = incoming
     .filter((l) => l.orderType === "putaway")
     .sort((a, b) => {
       const aCreated = a.createdAt ? Date.parse(a.createdAt) : Number.MAX_SAFE_INTEGER;
@@ -137,8 +137,6 @@ export default function ListTrackerPage() {
   ].sort(
     (a, b) => createdMs(a) - createdMs(b) || a.listId.localeCompare(b.listId, undefined, { numeric: true }),
   );
-  const putlistSlotRef = useRef<(string | null)[]>([null]);
-  const putlist = placeSlots(putlistSlotRef.current, putlists, byId)[0] ?? null;
 
   // Letters currently on the pick list above — their pigeon holes go yellow.
   const pickLetters = new Set(
@@ -190,17 +188,19 @@ export default function ListTrackerPage() {
 
             <div className="border-t border-foreground/20" />
 
-            {putlist && (
-              <section aria-label="Putlist order" className="h-[clamp(10rem,17vh,12rem)] shrink-0">
-                <SketchCard
-                  list={putlist}
-                  letter={putlist.listLetter}
-                  className="h-full"
-                />
+            {putlists.length > 0 && (
+              <section
+                aria-label="Putlist orders"
+                className="flex shrink-0 flex-col gap-2"
+                style={{ height: `min(${putlists.length * 10}rem, 38vh)` }}
+              >
+                {putlists.map((list) => (
+                  <SketchCard key={list.id} list={list} letter={list.listLetter} className="min-h-0 flex-1" />
+                ))}
               </section>
             )}
 
-            {putlist && <div className="border-t border-foreground/20" />}
+            {putlists.length > 0 && <div className="border-t border-foreground/20" />}
 
             <PigeonRow holes={pigeonHoles} pickLetters={pickLetters} />
           </>
