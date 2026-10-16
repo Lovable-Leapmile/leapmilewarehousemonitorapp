@@ -66,15 +66,16 @@ export function SketchStations({
     >
       {trays.map((tray) => (
         <li key={tray.orderId} className="flex min-w-0 flex-col items-center text-center">
+          {/* Trays still travelling have no station yet — show a dash. */}
           <span
             className={cn(
               "grid shrink-0 place-items-center whitespace-nowrap rounded-full border-2 font-mono font-semibold tabular-nums",
               tray.arrived === false ? "border-muted-foreground/70 bg-muted text-muted-foreground" : circle,
             )}
-            aria-label={`${tray.stationName}, bin ${tray.binId}, ${tray.arrived === false ? "coming" : "ready"}`}
-            style={{ width: size, height: size, fontSize: tray.stationName.length > 2 ? fontSize * 0.65 : fontSize }}
+            aria-label={`${tray.arrived === false ? "—" : tray.stationName}, bin ${tray.binId}, ${tray.arrived === false ? "coming" : "ready"}`}
+            style={{ width: size, height: size, fontSize: (tray.arrived === false ? "—" : tray.stationName).length > 2 ? fontSize * 0.65 : fontSize }}
           >
-            {tray.stationName}
+            {tray.arrived === false ? "—" : tray.stationName}
           </span>
           {/* Shelf ID chip overlaps the circle it belongs to, so the pairing
               is unambiguous even when rows sit close together. */}
