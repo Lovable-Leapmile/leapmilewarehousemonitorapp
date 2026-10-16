@@ -21,11 +21,14 @@ export function SketchStations({
   stops,
   tone = "success",
   singleRow = false,
+  letter,
   className,
 }: {
   stops?: TrackerList["stops"];
   tone?: "success" | "warning";
   singleRow?: boolean;
+  /** Dispatch hole letter shown on arrived bins, mapping them to the pigeon row. */
+  letter?: string;
   className?: string;
 }) {
   // Keep the station and bin from the same tray record; never invent station numbers.
