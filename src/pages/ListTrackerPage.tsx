@@ -168,19 +168,32 @@ export default function ListTrackerPage() {
           </div>
         ) : (
           <>
+            {/* Always six visible boxes: real cards plus empty placeholders,
+                so the grid shape never collapses when only one list arrives. */}
             <section
               className="grid min-h-0 flex-1 grid-cols-2 gap-2 sm:gap-3"
-              style={{ gridTemplateRows: `repeat(${Math.max(1, Math.ceil((picklistSlots.length + 1) / 2))}, minmax(0, 1fr))` }}
+              style={{ gridTemplateRows: "repeat(3, minmax(0, 1fr))" }}
             >
-              {picklistSlots.map((list, i) => (
-                <SketchCard
-                  key={list.id}
-                  list={list}
-                  letter={list.listLetter || (READY_LETTERS[i] ?? "A")}
-                  highlight={i === 0}
-                  className={cn("h-full min-h-0", i === 0 && "col-span-2")}
-                />
-              ))}
+              {Array.from({ length: PICKUP_VISIBLE_SLOTS }, (_, i) => picklistSlots[i] ?? null).map((list, i) =>
+                list ? (
+                  <SketchCard
+                    key={list.id}
+                    list={list}
+                    letter={list.listLetter || (READY_LETTERS[i] ?? "A")}
+                    highlight={i === 0}
+                    className={cn("h-full min-h-0", i === 0 && "col-span-2")}
+                  />
+                ) : (
+                  <div
+                    key={`empty-${i}`}
+                    aria-hidden
+                    className={cn(
+                      "min-h-0 rounded-2xl border-2 border-dashed border-foreground/10 bg-card/20",
+                      i === 0 && "col-span-2"
+                    )}
+                  />
+                )
+              )}
             </section>
 
             <div className="border-t border-foreground/20" />
