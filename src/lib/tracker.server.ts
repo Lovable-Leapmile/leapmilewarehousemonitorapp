@@ -199,7 +199,8 @@ export function buildLists(
     let station: string | null = null;
     const type = all.map(orderType).find((value) => value !== null) ?? null;
     const arrivedIds = new Set(group.arrived.map((order) => order.id));
-    const displayOrders = type === "pickup" ? all : group.arrived;
+    // Both order types show the full list: coming trays grey, arrived trays yellow.
+    const displayOrders = all;
     const shownIds = new Set<number>();
 
     for (const order of displayOrders) {
