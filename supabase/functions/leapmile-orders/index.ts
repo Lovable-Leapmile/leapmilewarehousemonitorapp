@@ -24,7 +24,8 @@ function buildUpstreamUrl(query: Record<string, string>) {
   for (const [key, value] of Object.entries(query)) {
     if (ALLOWED_FILTERS.has(key)) params.set(key, value);
   }
-  return `https://testrobot1.leapmile.com/nanostore/orders?${params.toString()}`;
+  const baseUrl = Deno.env.get("LEAPMILE_BASE_URL") ?? "https://flipkart1.leapmile.com";
+  return `${baseUrl}/nanostore/orders?${params.toString()}`;
 }
 
 async function fetchOrders(query: Record<string, string>, token: string) {
