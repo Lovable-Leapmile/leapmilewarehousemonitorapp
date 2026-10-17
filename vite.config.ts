@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       "/nanostore": {
-        target: "https://testrobot1.leapmile.com",
+        target: env.VITE_BASE_URL || "https://flipkart1.leapmile.com",
         changeOrigin: true,
         secure: true,
       },
