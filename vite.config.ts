@@ -4,9 +4,10 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  return {
   base: process.env.VITE_APP_BASE || '/',
-  env: loadEnv(mode, process.cwd(), ""),
   server: {
     host: "::",
     port: 8080,
